@@ -20,7 +20,7 @@
     },
     "appId":"myAppId",
     "copyright":"Rlverside",
-    "productName":"myApp",
+    "productName":"nga爬虫",
     "directories": {
       "output": "../build"
     }, 
