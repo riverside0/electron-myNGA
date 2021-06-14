@@ -25,7 +25,7 @@
       "output": "../build"
     }, 
     "mac":{
-      "icon": "./nga.ico",
+      "icon": "./nga-mac.ico",
       "target":[
         "dmg",
         "zip"
