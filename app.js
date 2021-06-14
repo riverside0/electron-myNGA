@@ -1,5 +1,5 @@
 const request = require("superagent");
-const { shell } = require("electron");
+const { shell, ipcRenderer } = require("electron");
 const cheerio = require("cheerio");
 var iconv = require("iconv-lite");
 
@@ -86,6 +86,7 @@ function wrapper(index) {
           }
           const res = eval(iconv.decode(response.body, "GBK"));
           if (res.data[0].posts !== tmp) {
+            ipcRenderer.send("notice");
             tmp = res.data[0].posts;
             post.innerHTML = `${res.data[0].username}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最新发帖数：${res.data[0].posts}`;
             function callSuperagent() {
