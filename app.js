@@ -9,14 +9,27 @@ function wrapper(index) {
   let post = this.document.querySelector(`#post${index}`);
   let reply = this.document.querySelector(`#reply${index}`);
   let input = this.document.querySelector(`#uid${index}`);
+  const wrapper = input.parentElement;
+  const aTag = wrapper.getElementsByTagName("a")[0];
+  aTag.className = "negative";
   btn1.setAttribute("disabled", true);
   let timer = null;
+  aTag.onclick = function (e) {
+    e.preventDefault();
+    let href = this.getAttribute("href");
+    shell.openExternal(href);
+  };
   btn0.onclick = function () {
     const val = input.value;
-    if(!val){
-      alert('请输入uid')
-      return
+    if (!val) {
+      alert("请输入uid");
+      return;
     }
+    aTag.className = "positive";
+    aTag.setAttribute(
+      "href",
+      `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`
+    );
     btn1.removeAttribute("disabled");
     btn0.setAttribute("disabled", true);
     let tmp = 0;
@@ -55,7 +68,7 @@ function wrapper(index) {
         reply.innerHTML = `最新回复：&nbsp;${res}`;
       });
 
-    timer = setInterval(() => {
+    const checkFunction = () => {
       let option0 = {};
       request
         .get(
@@ -118,17 +131,18 @@ function wrapper(index) {
               option1.title,
               has_reply ? option0 : option1
             );
+            const target_url = !has_reply
+              ? `https://bbs.nga.cn/nuke.php?__lib=ucp&__act=get&lite=js&uid=${val}`
+              : `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`;
             myNotification.onclick = () => {
-              shell.openExternal(
-                has_reply
-                  ? `https://bbs.nga.cn/nuke.php?__lib=ucp&__act=get&lite=js&uid=${val}`
-                  : `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`
-              );
+              shell.openExternal(target_url);
             };
             has_reply = false;
           }
         });
-    }, 100);
+      timer = setTimeout(checkFunction, 1000);
+    };
+    timer = setTimeout(checkFunction, 1000);
   };
   btn1.onclick = function () {
     clearInterval(timer);
@@ -137,6 +151,7 @@ function wrapper(index) {
     input.removeAttribute("disabled");
     btn0.removeAttribute("disabled");
     btn1.setAttribute("disabled", true);
+    aTag.className = "negative";
   };
 }
 
@@ -144,16 +159,16 @@ window.onload = function () {
   const btn = document.querySelector("#add");
   const btnDelete = document.querySelector("#delete");
   btnDelete.onclick = () => {
-    const body = document.body
-    const node = body.lastElementChild
-    body.removeChild(node)
-    const wrapperList = document.querySelectorAll('.wrapper')
-    if(wrapperList.length === 1){
-      btnDelete.setAttribute('disabled',true)
+    const body = document.body;
+    const node = body.lastElementChild;
+    body.removeChild(node);
+    const wrapperList = document.querySelectorAll(".wrapper");
+    if (wrapperList.length === 1) {
+      btnDelete.setAttribute("disabled", true);
     }
-  }
+  };
   btn.onclick = function () {
-    btnDelete.removeAttribute('disabled')
+    btnDelete.removeAttribute("disabled");
     const nodeList = document.querySelectorAll(".wrapper");
     const node = nodeList[0];
     const new_node = node.cloneNode(true);
@@ -181,6 +196,7 @@ window.onload = function () {
   let input1 = this.document.querySelector(`#uid1`);
   input0.value = 5348023;
   input1.value = 61078637;
+  // input1.value = 60373669;
   try {
     wrapper(0);
   } catch (error) {

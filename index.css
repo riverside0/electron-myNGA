@@ -1,6 +1,13 @@
 .wrapper{
   padding-top: 20px;
 }
+.wrapper .negative{
+  display: none;
+}
+.wrapper .positive{
+  display: inline;
+  text-decoration:none;
+}
 #delete{
   margin-left: 40px;
 }

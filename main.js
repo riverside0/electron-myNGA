@@ -1,5 +1,6 @@
 
 let electron = require("electron");
+electron.powerSaveBlocker.start('prevent-app-suspension')
 const path = require('path')
 let app = electron.app;
 // app.setAppUserModelId('myAppId') //设置后会丢失任务栏icon
