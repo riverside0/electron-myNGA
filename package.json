@@ -11,22 +11,22 @@
   },
   "author": "",
   "license": "ISC",
-  "build":{
-    "nsis":{
-      "oneClick":false,
+  "build": {
+    "nsis": {
+      "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "runAfterFinish":true
+      "runAfterFinish": true
     },
-    "appId":"myAppId",
-    "copyright":"Rlverside",
-    "productName":"nga爬虫",
+    "appId": "myAppId",
+    "copyright": "Rlverside",
+    "productName": "nga爬虫",
     "directories": {
       "output": "../build"
-    }, 
-    "mac":{
+    },
+    "mac": {
       "icon": "./nga-mac.ico",
-      "target":[
+      "target": [
         "dmg",
         "zip"
       ]

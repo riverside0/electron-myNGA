@@ -121,7 +121,6 @@ function wrapper(index) {
                   });
               });
             }
-            post.innerHTML = "";
             await callSuperagent();
 
             let option1 = {
@@ -146,7 +145,7 @@ function wrapper(index) {
     timer = setTimeout(checkFunction, 1000);
   };
   btn1.onclick = function () {
-    clearInterval(timer);
+    clearTimeout(timer);
     post.innerHTML = "";
     reply.innerHTML = "";
     input.removeAttribute("disabled");
