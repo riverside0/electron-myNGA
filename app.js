@@ -1,37 +1,81 @@
 const request = require("superagent");
-const { shell } = require("electron");
+const { shell,ipcRenderer } = require("electron");
 const cheerio = require("cheerio");
 var iconv = require("iconv-lite");
-
-function wrapper(index) {
-  let btn0 = this.document.querySelector(`#start${index}`);
-  let btn1 = this.document.querySelector(`#end${index}`);
-  let post = this.document.querySelector(`#post${index}`);
-  let reply = this.document.querySelector(`#reply${index}`);
-  let input = this.document.querySelector(`#uid${index}`);
-  const wrapper = input.parentElement;
-  const aTag = wrapper.getElementsByTagName("a")[0];
+let is_stop = new Map()///思考点  放进function里就不行
+ipcRenderer.on('stop', (event, indexStop) => {
+  is_stop.set(indexStop[0],indexStop[1])
+})
+const userAgent=['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3100.0 Safari/537.36','Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0.1216.0 Safari/537.2','Opera/9.80 (Windows NT 6.1; U; zh-cn) Presto/2.6.37 Version/11.00','Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25']
+function wrapper(node) {
+  const index = node.getAttribute('id')
+  const input = node.querySelector(".uid");
+  const start = node.querySelector(".start");
+  const end = node.querySelector(".end");
+  const refresh = node.querySelector(".refresh");
+  const post = node.querySelector(".post");
+  const reply = node.querySelector(".reply");
+  const aTag = node.getElementsByTagName("a")[0];
   aTag.className = "negative";
-  btn1.setAttribute("disabled", true);
+  end.setAttribute("disabled", true);
+  refresh.setAttribute("disabled", true);
   let timer = null;
-  aTag.onclick = function (e) {
-    e.preventDefault();
-    let href = this.getAttribute("href");
-    shell.openExternal(href);
-  };
-  btn0.onclick = function () {
+  let last_reply = reply.innerHTML;
+  refresh.onclick = async () => {
     const val = input.value;
     if (!val) {
       alert("请输入uid");
       return;
     }
+    refresh.setAttribute("disabled", true);
+    refresh.classList.add('blue')
+    do {
+      await request
+        .get(`https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`)
+        .set(
+          "Cookie",
+          "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
+        )
+        .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
+        .responseType("blob")
+        .then((response) => {
+          if (!response) {
+            return;
+          }
+          const html = iconv.decode(response.body, "GBK");
+          const $ = cheerio.load(html);
+          const res = $(".topic_content:first").children(".postcontent").text();
+          if (res !== "") {
+            `最新回复：&nbsp;${res}` !== last_reply
+              ? alert("刷到最新回复啦！")
+              : alert("已经是最新回复啦");
+            last_reply = reply.innerHTML = `最新回复：&nbsp;${res}`;
+            refresh.removeAttribute("disabled");
+          }
+        });
+    } while (is_stop.get(index) !== true);
+    refresh.classList.remove('blue')
+  };
+  aTag.onclick = function (e) {
+    e.preventDefault();
+    let href = this.getAttribute("href");
+    shell.openExternal(href);
+  };
+  start.onclick = function () {
+    const val = input.value;
+    if (!val) {
+      alert("请输入uid");
+      return;
+    }
+    ipcRenderer.send('stop-refresh', [index,false])
+    refresh.removeAttribute("disabled");
     aTag.className = "positive";
     aTag.setAttribute(
       "href",
       `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`
     );
-    btn1.removeAttribute("disabled");
-    btn0.setAttribute("disabled", true);
+    end.removeAttribute("disabled");
+    start.setAttribute("disabled", true);
     let tmp = 0;
     let has_reply = false;
     input.setAttribute("disabled", true);
@@ -41,6 +85,7 @@ function wrapper(index) {
         "Cookie",
         "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
       )
+      .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
       .set("Referer", `https://bbs.nga.cn/nuke.php?func=ucp&uid=${val}`)
       .responseType("blob")
       .end(function (err, response) {
@@ -57,6 +102,7 @@ function wrapper(index) {
         "Cookie",
         "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
       )
+      .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
       .responseType("blob")
       .end(function (err, response) {
         if (!response) {
@@ -65,10 +111,12 @@ function wrapper(index) {
         const html = iconv.decode(response.body, "GBK");
         const $ = cheerio.load(html);
         const res = $(".topic_content:first").children(".postcontent").text();
-        reply.innerHTML = `最新回复：&nbsp;${res}`;
+        if (res) {
+          last_reply = reply.innerHTML = `最新回复：&nbsp;${res}`;
+        }
       });
 
-    const checkFunction = () => {
+    const checkFunction = async () => {
       let option0 = {};
       request
         .get(
@@ -78,6 +126,7 @@ function wrapper(index) {
           "Cookie",
           "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
         )
+        .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
         .set("Referer", `https://bbs.nga.cn/nuke.php?func=ucp&uid=${val}`)
         .responseType("blob")
         .end(async function (_err, response) {
@@ -98,6 +147,7 @@ function wrapper(index) {
                     "Cookie",
                     "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
                   )
+                  .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
                   .responseType("blob")
                   .end(function (_err, response) {
                     if (!response) {
@@ -110,7 +160,7 @@ function wrapper(index) {
                       .text();
                     if (resp) {
                       has_reply = true;
-                      reply.innerHTML = `最新回复：&nbsp;${resp}`;
+                      last_reply = reply.innerHTML = `最新回复：&nbsp;${res}`;
                       option0 = {
                         title: res.data[0].username,
                         body: resp,
@@ -120,7 +170,6 @@ function wrapper(index) {
                   });
               });
             }
-            post.innerHTML = "";
             await callSuperagent();
 
             let option1 = {
@@ -144,13 +193,15 @@ function wrapper(index) {
     };
     timer = setTimeout(checkFunction, 1000);
   };
-  btn1.onclick = function () {
+  end.onclick = function () {
+    ipcRenderer.send('stop-refresh', [index,true])
     clearTimeout(timer);
+    refresh.setAttribute("disabled", true);
     post.innerHTML = "";
     reply.innerHTML = "";
     input.removeAttribute("disabled");
-    btn0.removeAttribute("disabled");
-    btn1.setAttribute("disabled", true);
+    start.removeAttribute("disabled");
+    end.setAttribute("disabled", true);
     aTag.className = "negative";
   };
 }
@@ -159,51 +210,50 @@ window.onload = function () {
   const btn = document.querySelector("#add");
   const btnDelete = document.querySelector("#delete");
   btnDelete.onclick = () => {
-    const body = document.body;
+  const wrapperList = document.querySelectorAll(".wrapper");
+  const body = document.body;
     const node = body.lastElementChild;
     body.removeChild(node);
-    const wrapperList = document.querySelectorAll(".wrapper");
     if (wrapperList.length === 1) {
       btnDelete.setAttribute("disabled", true);
     }
   };
   btn.onclick = function () {
+    const wrapperList = document.querySelectorAll(".wrapper");
     btnDelete.removeAttribute("disabled");
-    const nodeList = document.querySelectorAll(".wrapper");
-    const node = nodeList[0];
+    const node = wrapperList[0];
     const new_node = node.cloneNode(true);
+    new_node.setAttribute('id',`${wrapperList.length}`)
     document.body.appendChild(new_node);
-    const length = nodeList.length;
-    const childNodesList = new_node.childNodes;
-    childNodesList[3].setAttribute("id", `uid${length}`);
-    childNodesList[3].value = "";
-    childNodesList[3].removeAttribute("disabled");
-    childNodesList[5].setAttribute("id", `start${length}`);
-    childNodesList[5].removeAttribute("disabled");
-    childNodesList[7].setAttribute("id", `end${length}`);
-    childNodesList[7].setAttribute("disabled", true);
-    childNodesList[13].setAttribute("id", `post${length}`);
-    childNodesList[13].innerHTML = "";
-    childNodesList[17].setAttribute("id", `reply${length}`);
-    childNodesList[17].innerHTML = "";
+    const input = new_node.querySelector(".uid");
+    const start = new_node.querySelector(".start");
+    const end = new_node.querySelector(".end");
+    const post = new_node.querySelector(".post");
+    const reply = new_node.querySelector(".reply");
+    input.value = "";
+    input.removeAttribute("disabled");
+    start.removeAttribute("disabled");
+    end.setAttribute("disabled", true);
+    post.innerHTML = "";
+    reply.innerHTML = "";
     try {
-      wrapper(length);
+      wrapper(new_node);
     } catch (error) {
       alert(error);
     }
   };
-  let input0 = this.document.querySelector(`#uid0`);
-  let input1 = this.document.querySelector(`#uid1`);
-  input0.value = 5348023;
-  input1.value = 61078637;
-  // input1.value = 60373669;
+  let inputList = this.document.querySelectorAll(".uid");
+  inputList[0].value = 5348023;
+  inputList[1].value = 61078637;
+  // inputList[1].value = 60373669;
+  const wrapperList = document.querySelectorAll(".wrapper");
   try {
-    wrapper(0);
+    wrapper(wrapperList[0]);
   } catch (error) {
     alert(error);
   }
   try {
-    wrapper(1);
+    wrapper(wrapperList[1]);
   } catch (error) {
     alert(error);
   }

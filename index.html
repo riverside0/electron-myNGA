@@ -11,30 +11,32 @@
     <script src="app.js"></script>
     <button id="add" class="button small">添加监控用户</button>
     <button id="delete" class="button small">删除监控用户（最后一个）</button>
-    <div class="wrapper">
+    <div class="wrapper" id='0'>
       <label for="">输入监控的uid</label>
-      <input id="uid0" type="text" />
-      <button class="button small blue" id="start0">开始监控post数量</button>
-      <button class="button small red" id="end0">停止监控post数量</button>
+      <input id="uid0" type="text" class="uid"/>
+      <button class="button small blue start" id="start0">开始监控post数量</button>
+      <button class="button small red end" id="end0">停止监控post数量并停止刷新回复</button>
+      <button class="button small green refresh" >刷新最新回复</button>
       <br />
       <br />
-      <div id="post0"></div>
+      <div id="post0" class="post"></div>
       <br />
-      <div id="reply0"></div>
+      <div id="reply0" class="reply">最新回复：&nbsp;</div>
       <br />
       <a href="" class="negative">查看当前uid回复主页</a>
       <br />
     </div>
-    <div class="wrapper">
+    <div class="wrapper" id='1'>
       <label for="">输入监控的uid</label>
-      <input id="uid1" type="text" />
-      <button class="button small blue" id="start1">开始监控post数量</button>
-      <button class="button small red" id="end1">停止监控post数量</button>
+      <input id="uid1" type="text" class="uid"/>
+      <button class="button small blue start" id="start1" >开始监控post数量</button>
+      <button class="button small red end" id="end1" >停止监控post数量并停止刷新回复</button>
+      <button class="button small green refresh" >刷新最新回复</button>
       <br />
       <br />
-      <div id="post1"></div>
+      <div id="post1" class="post"></div>
       <br />
-      <div id="reply1"></div>
+      <div id="reply1" class="reply">最新回复：&nbsp;</div>
       <br />
       <a href="" class="negative">查看当前uid回复主页</a>
       <br />

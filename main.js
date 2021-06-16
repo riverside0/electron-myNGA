@@ -5,6 +5,7 @@ const path = require('path')
 let app = electron.app;
 // app.setAppUserModelId('myAppId') //设置后会丢失任务栏icon
 let BrowserWindow = electron.BrowserWindow;
+let ipcMain = electron.ipcMain;
 let Tray = electron.Tray;
 let Menu = electron.Menu;
 let tray =null
@@ -28,6 +29,9 @@ app.on("ready", () => {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+  ipcMain.on('stop-refresh', (event, indexStop) => {
+    mainWindow.webContents.send('stop', indexStop);
+  })
   mainWindow.on('close', (event) => { 
     mainWindow.hide(); 
     mainWindow.setSkipTaskbar(true);
