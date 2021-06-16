@@ -5,9 +5,10 @@ let ipcMain = electron.ipcMain;
 let app = electron.app;
 // app.setAppUserModelId('myAppId') //设置后会丢失任务栏icon
 let BrowserWindow = electron.BrowserWindow;
+let ipcMain = electron.ipcMain;
 // let Tray = electron.Tray;
 // let Menu = electron.Menu;
-// let tray = null;
+// let tray =null
 let mainWindow = null;
 
 ipcMain.on("notice", () => {
@@ -65,6 +66,9 @@ app.on("ready", () => {
   //     ? mainWindow.setSkipTaskbar(false)
   //     : mainWindow.setSkipTaskbar(true);
   // });
+  ipcMain.on('stop-refresh', (event, indexStop) => {
+    mainWindow.webContents.send('stop', indexStop);
+  })
 });
 app.whenReady().then(() => {
   createWindow();
