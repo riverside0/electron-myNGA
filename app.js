@@ -1,14 +1,19 @@
 const request = require("superagent");
-const { shell,ipcRenderer } = require("electron");
+const { shell } = require("electron");
 const cheerio = require("cheerio");
 var iconv = require("iconv-lite");
-let is_stop = new Map()///思考点  放进function里就不行
-ipcRenderer.on('stop', (event, indexStop) => {
-  is_stop.set(indexStop[0],indexStop[1])
-})
-const userAgent=['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3100.0 Safari/537.36','Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0.1216.0 Safari/537.2','Opera/9.80 (Windows NT 6.1; U; zh-cn) Presto/2.6.37 Version/11.00','Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25']
+let is_stop = new Map(); ///思考点  放进function里就不行
+// ipcRenderer.on("stop", (event, indexStop) => {
+//   is_stop.set(indexStop[0], indexStop[1]);
+// });
+const userAgent = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3100.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0.1216.0 Safari/537.2",
+  "Opera/9.80 (Windows NT 6.1; U; zh-cn) Presto/2.6.37 Version/11.00",
+  "Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25",
+];
 function wrapper(node) {
-  const index = node.getAttribute('id')
+  const index = node.getAttribute("id");
   const input = node.querySelector(".uid");
   const start = node.querySelector(".start");
   const end = node.querySelector(".end");
@@ -28,7 +33,7 @@ function wrapper(node) {
       return;
     }
     refresh.setAttribute("disabled", true);
-    refresh.classList.add('blue')
+    refresh.classList.add("blue");
     do {
       await request
         .get(`https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`)
@@ -36,7 +41,7 @@ function wrapper(node) {
           "Cookie",
           "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
         )
-        .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
+        .set("User-Agent", userAgent[Math.floor(Math.random() * 4)])
         .responseType("blob")
         .then((response) => {
           if (!response) {
@@ -46,6 +51,8 @@ function wrapper(node) {
           const $ = cheerio.load(html);
           const res = $(".topic_content:first").children(".postcontent").text();
           if (res !== "") {
+            // ipcRenderer.send("stop-refresh", [index, true]);
+            is_stop.set(index, true);
             `最新回复：&nbsp;${res}` !== last_reply
               ? alert("刷到最新回复啦！")
               : alert("已经是最新回复啦");
@@ -54,7 +61,7 @@ function wrapper(node) {
           }
         });
     } while (is_stop.get(index) !== true);
-    refresh.classList.remove('blue')
+    refresh.classList.remove("blue");
   };
   aTag.onclick = function (e) {
     e.preventDefault();
@@ -67,7 +74,8 @@ function wrapper(node) {
       alert("请输入uid");
       return;
     }
-    ipcRenderer.send('stop-refresh', [index,false])
+    // ipcRenderer.send("stop-refresh", [index, false]);
+    is_stop.set(index, false);
     refresh.removeAttribute("disabled");
     aTag.className = "positive";
     aTag.setAttribute(
@@ -85,7 +93,7 @@ function wrapper(node) {
         "Cookie",
         "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
       )
-      .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
+      .set("User-Agent", userAgent[Math.floor(Math.random() * 4)])
       .set("Referer", `https://bbs.nga.cn/nuke.php?func=ucp&uid=${val}`)
       .responseType("blob")
       .end(function (err, response) {
@@ -102,7 +110,7 @@ function wrapper(node) {
         "Cookie",
         "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
       )
-      .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
+      .set("User-Agent", userAgent[Math.floor(Math.random() * 4)])
       .responseType("blob")
       .end(function (err, response) {
         if (!response) {
@@ -126,7 +134,7 @@ function wrapper(node) {
           "Cookie",
           "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
         )
-        .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
+        .set("User-Agent", userAgent[Math.floor(Math.random() * 4)])
         .set("Referer", `https://bbs.nga.cn/nuke.php?func=ucp&uid=${val}`)
         .responseType("blob")
         .end(async function (_err, response) {
@@ -135,6 +143,7 @@ function wrapper(node) {
           }
           const res = eval(iconv.decode(response.body, "GBK"));
           if (res.data[0].posts !== tmp) {
+            has_reply = false;
             tmp = res.data[0].posts;
             post.innerHTML = `${res.data[0].username}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;最新发帖数：${res.data[0].posts}`;
             function callSuperagent() {
@@ -147,7 +156,7 @@ function wrapper(node) {
                     "Cookie",
                     "ngaPassportUid=60373669;bbsmisccookies=%7B%22uisetting%22%3A%7B0%3A1%2C1%3A1624089387%7D%2C%22pv_count_for_insad%22%3A%7B0%3A-20%2C1%3A1623517270%7D%2C%22insad_views%22%3A%7B0%3A1%2C1%3A1623517270%7D%7D;ngaPassportCid=X8p9hg4ir81gqg4026ruf38qje7c12fp2t8hip34"
                   )
-                  .set('User-Agent',userAgent[Math.floor(Math.random() * 4)])
+                  .set("User-Agent", userAgent[Math.floor(Math.random() * 4)])
                   .responseType("blob")
                   .end(function (_err, response) {
                     if (!response) {
@@ -160,7 +169,7 @@ function wrapper(node) {
                       .text();
                     if (resp) {
                       has_reply = true;
-                      last_reply = reply.innerHTML = `最新回复：&nbsp;${res}`;
+                      last_reply = reply.innerHTML = `最新回复：&nbsp;${resp}`;
                       option0 = {
                         title: res.data[0].username,
                         body: resp,
@@ -178,15 +187,16 @@ function wrapper(node) {
             };
             let myNotification = new window.Notification(
               option1.title,
-              has_reply ? option0 : option1
+              has_reply ? option0 : "点击强刷回复"
             );
-            const target_url = !has_reply
-              ? `https://bbs.nga.cn/nuke.php?__lib=ucp&__act=get&lite=js&uid=${val}`
-              : `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`;
+            const target_url = `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`;
             myNotification.onclick = () => {
-              shell.openExternal(target_url);
+              if (has_reply) {
+                shell.openExternal(target_url);
+              } else {
+                refresh.click();
+              }
             };
-            has_reply = false;
           }
         });
       timer = setTimeout(checkFunction, 1000);
@@ -194,7 +204,8 @@ function wrapper(node) {
     timer = setTimeout(checkFunction, 1000);
   };
   end.onclick = function () {
-    ipcRenderer.send('stop-refresh', [index,true])
+    // ipcRenderer.send("stop-refresh", [index, true]);
+    is_stop.set(index, true);
     clearTimeout(timer);
     refresh.setAttribute("disabled", true);
     post.innerHTML = "";
@@ -210,8 +221,8 @@ window.onload = function () {
   const btn = document.querySelector("#add");
   const btnDelete = document.querySelector("#delete");
   btnDelete.onclick = () => {
-  const wrapperList = document.querySelectorAll(".wrapper");
-  const body = document.body;
+    const wrapperList = document.querySelectorAll(".wrapper");
+    const body = document.body;
     const node = body.lastElementChild;
     body.removeChild(node);
     if (wrapperList.length === 1) {
@@ -223,7 +234,7 @@ window.onload = function () {
     btnDelete.removeAttribute("disabled");
     const node = wrapperList[0];
     const new_node = node.cloneNode(true);
-    new_node.setAttribute('id',`${wrapperList.length}`)
+    new_node.setAttribute("id", `${wrapperList.length}`);
     document.body.appendChild(new_node);
     const input = new_node.querySelector(".uid");
     const start = new_node.querySelector(".start");
