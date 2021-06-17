@@ -1,6 +1,5 @@
 let electron = require("electron");
 electron.powerSaveBlocker.start("prevent-app-suspension");
-let ipcMain = electron.ipcMain;
 // const path = require("path");
 let app = electron.app;
 // app.setAppUserModelId('myAppId') //设置后会丢失任务栏icon
@@ -48,6 +47,7 @@ app.on("ready", () => {
   //   mainWindow.setSkipTaskbar(true);
   //   event.preventDefault();
   // });
+
   //创建系统通知区菜单
   // const contextMenu = Menu.buildFromTemplate([
   //   {
@@ -66,9 +66,9 @@ app.on("ready", () => {
   //     ? mainWindow.setSkipTaskbar(false)
   //     : mainWindow.setSkipTaskbar(true);
   // });
-  ipcMain.on('stop-refresh', (event, indexStop) => {
-    mainWindow.webContents.send('stop', indexStop);
-  })
+  // ipcMain.on("stop-refresh", (event, indexStop) => {
+  //   mainWindow.webContents.send("stop", indexStop);
+  // });
 });
 app.whenReady().then(() => {
   createWindow();
