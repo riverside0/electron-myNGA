@@ -183,11 +183,11 @@ function wrapper(node) {
 
             let option1 = {
               title: res.data[0].username,
-              body: res.data[0].posts,
+              body: "点击强刷回复",
             };
             let myNotification = new window.Notification(
               option1.title,
-              has_reply ? option0 : "点击强刷回复"
+              has_reply ? option0 : option1
             );
             const target_url = `https://bbs.nga.cn/thread.php?searchpost=1&authorid=${val}`;
             myNotification.onclick = () => {
