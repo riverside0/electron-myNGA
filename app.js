@@ -26,7 +26,16 @@ function wrapper(node) {
   refresh.setAttribute("disabled", true);
   let timer = null;
   let last_reply = reply.innerHTML;
+  let is_refresh = false;
   refresh.onclick = async () => {
+    if (!is_refresh) {
+      is_refresh = true;
+      end.click();
+      start.click();
+      refresh.click();
+      return;
+    }
+    is_refresh = false;
     const val = input.value;
     if (!val) {
       alert("请输入uid");
@@ -52,12 +61,12 @@ function wrapper(node) {
           const res = $(".topic_content:first").children(".postcontent").text();
           if (res !== "") {
             // ipcRenderer.send("stop-refresh", [index, true]);
-            is_stop.set(index, true);
             `最新回复：&nbsp;${res}` !== last_reply
               ? alert("刷到最新回复啦！")
               : alert("已经是最新回复啦");
             last_reply = reply.innerHTML = `最新回复：&nbsp;${res}`;
             refresh.removeAttribute("disabled");
+            is_stop.set(index, true);
           }
         });
     } while (is_stop.get(index) !== true);
@@ -195,6 +204,8 @@ function wrapper(node) {
               if (has_reply) {
                 shell.openExternal(target_url);
               } else {
+                end.click();
+                start.click();
                 refresh.click();
               }
             };
